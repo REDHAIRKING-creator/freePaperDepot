@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Papierdepot</title>
+<meta name="description" content="Börse spielen mit Spielgeld: Wärst du ein guter Anleger? Live-Depot und Zeitmaschine – nur ein Spiel, keine Anlageberatung.">
+<meta name="theme-color" content="#0b0d12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12; --surface:#141821; --surface2:#1b2030; --line:#262c3b;
+  --text:#eef1f7; --muted:#8b93a7; --faint:#5b6377;
+  --up:#2fd07a; --down:#ff5c6c; --accent:#8b7dff; --accent2:#5ad1ff; --gold:#f5c451;
+  --upbg:rgba(47,208,122,.12); --downbg:rgba(255,92,108,.12); --accentbg:rgba(139,125,255,.14);
+  --shadow:0 20px 60px rgba(0,0,0,.45);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f4f5f8; --surface:#ffffff; --surface2:#eef0f5; --line:#e2e5ec;
+    --text:#10131a; --muted:#5f6779; --faint:#9aa1b2;
+    --up:#0f9d58; --down:#e5364a; --accent:#5b4bff; --accent2:#0091d5;
+    --upbg:rgba(15,157,88,.10); --downbg:rgba(229,54,74,.10); --accentbg:rgba(91,75,255,.10);
+    --shadow:0 20px 60px rgba(20,25,40,.18);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);
+  font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));min-height:100vh;line-height:1.45}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.muted{color:var(--muted)} .up{color:var(--up)} .down{color:var(--down)}
+.small{font-size:13px} .tiny{font-size:11.5px}
+
+/* Header */
+header.top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+header .bar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:18px}
+.logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;color:#fff}
+.logo small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);letter-spacing:0}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:99px;
+  background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.pill.live .dot{background:var(--up);box-shadow:0 0 0 0 var(--up);animation:pulse 2s infinite}
+.pill.demo .dot{background:var(--gold)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,208,122,.6)}70%{box-shadow:0 0 0 7px rgba(47,208,122,0)}100%{box-shadow:0 0 0 0 rgba(47,208,122,0)}}
+
+/* Views */
+main{padding-top:18px}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1{font-size:28px;letter-spacing:-.03em;font-weight:800;line-height:1.15}
+h2{font-size:19px;letter-spacing:-.02em;font-weight:700}
+h3{font-size:15px;font-weight:700}
+.lead{color:var(--muted);margin-top:6px;max-width:620px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:22px 0 12px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.card + .card{margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+
+.banner{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-size:13px;
+  background:var(--accentbg);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);margin-bottom:14px}
+.banner.warn{background:rgba(245,196,81,.10);border-color:rgba(245,196,81,.35)}
+.banner b{font-weight:700}
+
+/* Chips & buttons */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:8px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;font-weight:600;white-space:nowrap;color:var(--muted)}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:14px;font-weight:700;font-size:15px;
+  background:var(--surface2);border:1px solid var(--line);transition:transform .1s, opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--accent2)));color:#fff;border:0}
+.btn.buy{background:var(--up);color:#04140b;border:0}
+.btn.sell{background:var(--down);color:#fff;border:0}
+.btn.block{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent}
+.link{color:var(--accent);font-weight:600;font-size:13.5px}
+
+/* Search */
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:46px;margin-bottom:12px}
+.search input{flex:1;background:none;border:0;outline:0;font-size:15px}
+
+/* Asset rows */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}
+.row{display:grid;grid-template-columns:42px 1fr 76px 104px;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;width:100%;text-align:left}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--surface2)}
+@media(max-width:420px){.row{grid-template-columns:40px 1fr 92px}.row .sp{display:none}}
+.av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;position:relative;letter-spacing:-.02em}
+.av .fl{position:absolute;right:-5px;bottom:-5px;font-size:13px;line-height:1;background:var(--surface);border-radius:50%;padding:1px}
+.nm{min-width:0}
+.nm b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm span{font-size:12px;color:var(--muted)}
+.px{text-align:right}
+.px b{display:block;font-weight:600;font-size:14.5px}
+.chg{display:inline-block;font-size:12px;font-weight:700;padding:2px 7px;border-radius:7px;margin-top:2px}
+.chg.up{background:var(--upbg)} .chg.down{background:var(--downbg)}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 6px;border-radius:5px;background:var(--surface2);color:var(--muted);margin-left:4px;vertical-align:1px}
+.tag.etf{background:var(--accentbg);color:var(--accent)}
+.tag.krypto{background:rgba(245,196,81,.14);color:var(--gold)}
+.skel{display:inline-block;height:12px;width:60px;border-radius:6px;background:linear-gradient(90deg,var(--surface2),var(--line),var(--surface2));background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* Big numbers */
+.big{font-size:38px;font-weight:800;letter-spacing:-.035em;line-height:1.1}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.kpi{background:var(--surface2);border-radius:12px;padding:10px 12px}
+.kpi span{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
+.kpi b{font-size:15.5px;font-weight:700}
+
+/* Chart */
+.chart{position:relative;width:100%;margin-top:12px;user-select:none;touch-action:pan-y}
+.chart svg{display:block;width:100%;overflow:visible}
+.tip{position:absolute;top:0;pointer-events:none;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px;white-space:nowrap;box-shadow:var(--shadow);opacity:0;transition:opacity .1s;z-index:2}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.ranges{display:flex;gap:4px;margin-top:10px;background:var(--surface2);padding:4px;border-radius:12px}
+.ranges button{flex:1;padding:7px 0;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted)}
+.ranges button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+
+/* Sheet */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;
+  transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);padding:10px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+.sheet.on{transform:none}
+.sheet:not(.on){visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+@media(min-width:760px){
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;width:640px;border-radius:24px;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:all .22s}
+  .sheet.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+  .sheet .grab{display:none}
+}
+.sheet-head{display:flex;align-items:center;gap:12px}
+.x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:18px}
+.risk{display:flex;gap:3px;align-items:center}
+.risk i{width:16px;height:6px;border-radius:3px;background:var(--line)}
+.risk i.f{background:var(--gold)} .risk i.f.h{background:var(--down)} .risk i.f.l{background:var(--up)}
+.seg{display:flex;background:var(--surface2);padding:4px;border-radius:12px;gap:4px}
+.seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--text)}
+.field{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:54px;margin-top:12px}
+.field input{flex:1;background:none;border:0;outline:0;font-size:22px;font-weight:700;min-width:0}
+.field span{font-weight:700;color:var(--muted)}
+.quick{display:flex;gap:8px;margin-top:10px}
+.quick button{flex:1;padding:8px 0;border-radius:10px;background:var(--surface2);font-size:13px;font-weight:700;color:var(--muted)}
+
+/* Positions */
+.pos{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.pos:last-child{border-bottom:0}
+
+/* Time machine */
+.yearpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.yearpick button{padding:16px 0;border-radius:14px;background:var(--surface2);border:2px solid transparent;font-weight:800;font-size:20px}
+.yearpick button small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.yearpick button.on{border-color:var(--accent);background:var(--accentbg)}
+.tmrow{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.tmrow:last-child{border-bottom:0}
+.tmrow.na{opacity:.45}
+.tmrow .nm b{white-space:normal;line-height:1.25}
+.stepper{display:flex;align-items:center;background:var(--surface2);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.stepper button{width:34px;height:38px;font-size:18px;font-weight:700;color:var(--muted)}
+.stepper input{width:64px;text-align:center;background:none;border:0;outline:0;font-weight:700;font-size:14px}
+.stepper.has{border-color:var(--accent)}
+.alloc-bar{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:10;margin-top:14px;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.alloc-bar .meter{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;margin-top:6px}
+.alloc-bar .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
+.group-h{padding:14px 16px 6px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface)}
+.progress{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:14px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+.timeline{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.timeline button{padding:8px 12px;border-radius:10px;background:var(--surface2);font-size:13px;font-weight:700}
+.timeline button.on{background:var(--accent);color:#fff}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:14px}
+.verdict{text-align:center;padding:26px 18px}
+.verdict .emo{font-size:44px}
+.insight{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.insight:last-child{border-bottom:0}
+.insight .ic{font-size:20px;flex:none;width:28px;text-align:center}
+table.res{width:100%;border-collapse:collapse;font-size:13.5px}
+table.res th{text-align:right;font-size:11.5px;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
+table.res th:first-child,table.res td:first-child{text-align:left}
+table.res td{text-align:right;padding:10px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.res td:first-child{white-space:normal}
+@media(max-width:480px){table.res th:nth-child(2),table.res td:nth-child(2){display:none}}
+
+/* Learn */
+.learn h3{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.learn p{color:var(--muted);font-size:14px}
+.setting{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.setting input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13.5px;outline:0}
+
+/* Tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.tabbar button{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--faint);padding:4px 0}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button.on{color:var(--text)}
+.tabbar button.on svg{color:var(--accent)}
+
+.toast{position:fixed;left:50%;top:76px;transform:translate(-50%,-20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;z-index:60;opacity:0;transition:all .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+footer{padding:28px 0 10px;text-align:center;font-size:12px;color:var(--faint)}
+.empty{text-align:center;padding:30px 10px}
+.empty .emo{font-size:40px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap bar">
+    <div class="logo">
+      <div class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+      <div>Papierdepot<small>Börse spielen – nur mit Spielgeld</small></div>
+    </div>
+    <button class="pill" id="status" data-act="goto" data-view="lernen"><span class="dot"></span><span>Verbinde…</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= MARKT ================= -->
+  <section class="view on" id="view-markt">
+    <h1>Wärst du ein guter Anleger?</h1>
+    <p class="lead">Investiere Spielgeld in echte Aktien, ETFs und Krypto zu aktuellen Kursen – und beobachte, was passiert. Oder reise in der Zeitmaschine in die Vergangenheit.</p>
+    <div id="demoBanner"></div>
+    <div class="section-head"><h2>Markt</h2><span class="tiny muted" id="mktUpdated"></span></div>
+    <label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="muted"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Suche: Tesla, ETF, Verbund …" autocomplete="off"></label>
+    <div class="chips" id="cats"></div>
+    <div class="list" id="mktList"></div>
+  </section>
+
+  <!-- ================= DEPOT ================= -->
+  <section class="view" id="view-depot"></section>
+
+  <!-- ================= ZEITMASCHINE ================= -->
+  <section class="view" id="view-zeit"></section>
+
+  <!-- ================= LERNEN ================= -->
+  <section class="view" id="view-lernen"></section>
+
+  <footer>Papierdepot ist ein Lernspiel mit Spielgeld. Keine Anlageberatung, keine Kaufempfehlung.<br>Kursdaten: Yahoo Finance (teilweise verzögert, ohne Gewähr).</footer>
+</main>
+
+<nav class="tabbar">
+  <button class="on" data-act="goto" data-view="markt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Markt</button>
+  <button data-act="goto" data-view="depot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M16 13h2"/><path d="M7 6V4h10v2"/></svg>Mein Depot</button>
+  <button data-act="goto" data-view="zeit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M3 5l2 2"/></svg>Zeitmaschine</button>
+  <button data-act="goto" data-view="lernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 8l10-5 10 5-10 5z"/><path d="M6 10v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Wissen</button>
+</nav>
+
+<div class="backdrop" id="backdrop" data-act="close"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Papierdepot – Lernspiel. Keine Anlageberatung.
+   ========================================================= */
+
+// ---------- Anlage-Universum ----------
+const ASSETS = [
+  // ETFs
+  {s:'EUNL.DE',n:'iShares Core MSCI World',c:'ETFs',ty:'ETF',f:'🌍',b:105,d:'Rund 1.300 Unternehmen aus 23 Industrieländern in einem einzigen Produkt. Der Klassiker für breite Streuung.'},
+  {s:'VWCE.DE',n:'Vanguard FTSE All-World',c:'ETFs',ty:'ETF',f:'🌍',b:140,d:'Industrie- und Schwellenländer, rund 3.700 Firmen. Erst seit 2019 an der Börse.'},
+  {s:'SXR8.DE',n:'iShares Core S&P 500',c:'ETFs',ty:'ETF',f:'🇺🇸',b:600,d:'Die 500 größten US-Unternehmen. Breit, aber nur ein Land.'},
+  {s:'EXS1.DE',n:'iShares Core DAX',c:'ETFs',ty:'ETF',f:'🇩🇪',b:200,d:'Die 40 größten deutschen Börsenunternehmen.'},
+  {s:'IS3N.DE',n:'iShares Core MSCI EM IMI',c:'ETFs',ty:'ETF',f:'🌏',b:35,d:'Schwellenländer wie China, Indien, Taiwan oder Brasilien – mehr Chance, mehr Schwankung.'},
+  // USA
+  {s:'AAPL',n:'Apple',c:'USA',ty:'Aktie',f:'🇺🇸',b:230,d:'iPhone, Mac und Services. Eines der wertvollsten Unternehmen der Welt.'},
+  {s:'MSFT',n:'Microsoft',c:'USA',ty:'Aktie',f:'🇺🇸',b:420,d:'Windows, Office, Cloud (Azure) und KI.'},
+  {s:'NVDA',n:'Nvidia',c:'USA',ty:'Aktie',f:'🇺🇸',b:170,d:'Grafik- und KI-Chips. Extrem gelaufen – und extrem schwankungsanfällig.'},
+  {s:'AMZN',n:'Amazon',c:'USA',ty:'Aktie',f:'🇺🇸',b:210,d:'Onlinehandel und der größte Cloud-Anbieter (AWS).'},
+  {s:'TSLA',n:'Tesla',c:'USA',ty:'Aktie',f:'🇺🇸',b:380,d:'Elektroautos und Batterien. Berühmt für wilde Kursausschläge.'},
+  {s:'GOOGL',n:'Alphabet (Google)',c:'USA',ty:'Aktie',f:'🇺🇸',b:230,d:'Google-Suche, YouTube, Android und Cloud.'},
+  {s:'META',n:'Meta Platforms',c:'USA',ty:'Aktie',f:'🇺🇸',b:650,d:'Facebook, Instagram, WhatsApp. 2022 fiel die Aktie zeitweise um über 70 %.'},
+  {s:'MCD',n:"McDonald's",c:'USA',ty:'Aktie',f:'🇺🇸',b:270,d:'Fast-Food-Riese mit stabilem Geschäft und Dividende.'},
+  {s:'KO',n:'Coca-Cola',c:'USA',ty:'Aktie',f:'🇺🇸',b:62,d:'Getränkekonzern, gilt als defensiver Dividendenwert.'},
+  {s:'NFLX',n:'Netflix',c:'USA',ty:'Aktie',f:'🇺🇸',b:100,d:'Streaming-Pionier mit großen Auf- und Abs.'},
+  {s:'PYPL',n:'PayPal',c:'USA',ty:'Aktie',f:'🇺🇸',b:60,d:'Online-Bezahldienst. Ein Beispiel dafür, wie tief einstige Lieblinge fallen können.'},
+  // Deutschland
+  {s:'SAP.DE',n:'SAP',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:230,d:'Unternehmenssoftware, wertvollster Konzern Deutschlands.'},
+  {s:'SIE.DE',n:'Siemens',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:230,d:'Industrie, Automatisierung, Bahn- und Gebäudetechnik.'},
+  {s:'ALV.DE',n:'Allianz',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:360,d:'Einer der größten Versicherer der Welt.'},
+  {s:'RHM.DE',n:'Rheinmetall',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:1700,d:'Rüstungs- und Autozulieferer. Seit 2022 ein Vielfaches gestiegen.'},
+  {s:'BAYN.DE',n:'Bayer',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:28,d:'Pharma und Agrarchemie. Nach der Monsanto-Übernahme stark gefallen.'},
+  {s:'VOW3.DE',n:'Volkswagen Vz.',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:95,d:'Europas größter Autobauer.'},
+  {s:'ADS.DE',n:'Adidas',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:170,d:'Sportartikelhersteller aus Herzogenaurach.'},
+  {s:'DTE.DE',n:'Deutsche Telekom',c:'Deutschland',ty:'Aktie',f:'🇩🇪',b:30,d:'Telekommunikation, Mehrheitseigner von T-Mobile US.'},
+  // Österreich
+  {s:'VER.VI',n:'Verbund',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:68,d:'Größter Stromerzeuger Österreichs, vor allem Wasserkraft.'},
+  {s:'OMV.VI',n:'OMV',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:47,d:'Öl-, Gas- und Chemiekonzern.'},
+  {s:'EBS.VI',n:'Erste Group',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:85,d:'Bankengruppe mit Fokus auf Zentral- und Osteuropa.'},
+  {s:'VOE.VI',n:'voestalpine',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:30,d:'Stahl- und Technologiekonzern aus Linz.'},
+  {s:'POST.VI',n:'Österreichische Post',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:29,d:'Brief, Paket und Bank99 – klassischer Dividendenwert.'},
+  {s:'ATS.VI',n:'AT&S',c:'Österreich',ty:'Aktie',f:'🇦🇹',b:30,d:'Leiterplatten für Chips. Sehr starke Schwankungen.'},
+  // Europa
+  {s:'ASML.AS',n:'ASML',c:'Europa',ty:'Aktie',f:'🇳🇱',b:700,d:'Baut die Maschinen, ohne die moderne Chips nicht herstellbar sind.'},
+  {s:'MC.PA',n:'LVMH',c:'Europa',ty:'Aktie',f:'🇫🇷',b:550,d:'Luxuskonzern: Louis Vuitton, Dior, Moët & Hennessy.'},
+  {s:'NESN.SW',n:'Nestlé',c:'Europa',ty:'Aktie',f:'🇨🇭',b:80,d:'Größter Lebensmittelkonzern der Welt. Gehandelt in Franken.'},
+  {s:'NOVO-B.CO',n:'Novo Nordisk',c:'Europa',ty:'Aktie',f:'🇩🇰',b:45,d:'Diabetes- und Abnehmmittel. Erst Höhenflug, dann tiefer Fall.'},
+  // Asien
+  {s:'7203.T',n:'Toyota',c:'Asien',ty:'Aktie',f:'🇯🇵',b:17,d:'Größter Autobauer der Welt. Gehandelt in Yen.'},
+  {s:'6758.T',n:'Sony',c:'Asien',ty:'Aktie',f:'🇯🇵',b:24,d:'PlayStation, Kamerasensoren, Musik und Filme.'},
+  {s:'7974.T',n:'Nintendo',c:'Asien',ty:'Aktie',f:'🇯🇵',b:70,d:'Switch, Mario, Zelda, Pokémon.'},
+  // Krypto & Gold
+  {s:'BTC-EUR',n:'Bitcoin',c:'Krypto & Gold',ty:'Krypto',f:'₿',b:95000,d:'Kryptowährung ohne Unternehmen dahinter. Halbierungen innerhalb weniger Monate sind normal.'},
+  {s:'4GLD.DE',n:'Xetra-Gold',c:'Krypto & Gold',ty:'Gold',f:'🥇',b:110,d:'Durch physisches Gold gedeckt. Keine Firma, keine Dividende – gilt als Krisenschutz.'},
+];
+const BY = Object.fromEntries(ASSETS.map(a=>[a.s,a]));
+const CATS = ['Beliebt','Alle','ETFs','USA','Deutschland','Österreich','Europa','Asien','Krypto & Gold'];
+const POPULAR = ['EUNL.DE','VWCE.DE','AAPL','NVDA','TSLA','AMZN','MCD','SAP.DE','VER.VI','EBS.VI','7203.T','BTC-EUR'];
+const BENCH = 'EUNL.DE';
+const RISK = {ETF:2,Gold:3,Aktie:4,Krypto:5};
+
+// ---------- Helfer ----------
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const YEAR = 365.25*864e5, DAY = 864e5;
+const nf2 = new Intl.NumberFormat('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2});
+const eur = v => v==null||!isFinite(v) ? '–' : nf2.format(v)+' €';
+const eur0 = v => v==null||!isFinite(v) ? '–' : new Intl.NumberFormat('de-AT',{maximumFractionDigits:0}).format(v)+' €';
+const pct = (v,d=2) => v==null||!isFinite(v) ? '–' : (v>=-5e-5?'+':'−')+Math.abs(v*100).toFixed(d).replace('.',',')+' %';
+const sgnEur = v => (v>=-0.005?'+':'−')+nf2.format(Math.abs(v))+' €';
+const cls = v => v>=-5e-5?'up':'down';
+const priceFmt = v => v==null?'–': v>=1000 ? new Intl.NumberFormat('de-AT',{maximumFractionDigits:0}).format(v)+' €' : eur(v);
+const shFmt = v => new Intl.NumberFormat('de-AT',{maximumFractionDigits:v<1?5:3}).format(v);
+const dateFmt = t => new Date(t).toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'});
+const timeFmt = t => new Date(t).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+const parseNum = v => { const n = parseFloat(String(v).replace(/\s/g,'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+function hue(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h}
+function avatar(a){
+  const init = a.ty==='Krypto'?'₿':a.ty==='Gold'?'Au':a.n.replace(/[^A-Za-zÄÖÜäöü0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const bg = a.ty==='ETF' ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : a.ty==='Krypto'||a.ty==='Gold' ? 'linear-gradient(135deg,#f5c451,#e08a1e)' : `hsl(${hue(a.s)} 45% 42%)`;
+  return `<div class="av" style="background:${bg}">${init}<span class="fl">${a.ty==='Krypto'||a.ty==='Gold'?'':a.f}</span></div>`;
+}
+function tag(a){const k=a.ty==='ETF'?'etf':a.ty==='Krypto'?'krypto':'';return `<span class="tag ${k}">${a.ty}</span>`}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+
+// =========================================================
+//  DATEN: Yahoo Finance über öffentliche CORS-Proxys
+//  (Fallback: deterministische Demo-Kurse, klar gekennzeichnet)
+// =========================================================
+const PROXIES = [
+  {id:'corsproxy', wrap:u=>'https://corsproxy.io/?url='+encodeURIComponent(u)},
+  {id:'allorigins', wrap:u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
+  {id:'codetabs', wrap:u=>'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)},
+];
+function proxyList(){
+  const custom = store.get('pd_proxy','');
+  const good = store.get('pd_goodproxy','');
+  const list = [...PROXIES].sort((a,b)=>(b.id===good)-(a.id===good));
+  if(custom) list.unshift({id:'custom',wrap:u=>custom+encodeURIComponent(u)});
+  return list;
+}
+async function fetchViaProxies(url){
+  let lastErr = new Error('Keine Verbindung');
+  for(const p of proxyList()){
+    let to;
+    try{
+      // Timeout ohne AbortSignal (manche Umgebungen, z. B. App-Vorschauen, können das Signal nicht weiterreichen)
+      const timeout = new Promise((_,rej)=>{ to=setTimeout(()=>rej(new Error('Timeout')),10000); });
+      const res = await Promise.race([fetch(p.wrap(url)), timeout]);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const j = JSON.parse(await res.text());
+      if(j && j.chart && j.chart.error){ const e=new Error('Symbol: '+(j.chart.error.description||'Fehler')); e.symbol=true; throw e; }
+      if(!j || !j.chart || !j.chart.result || !j.chart.result[0]) throw new Error('Unerwartetes Format');
+      if(p.id!=='custom') store.set('pd_goodproxy',p.id);
+      return j;
+    }catch(e){ lastErr=e; if(e.symbol) throw e; }
+    finally{ clearTimeout(to); }
+  }
+  throw lastErr;
+}
+async function fetchYahoo(sym,range,interval){
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false&events=div%2Csplit`;
+  const j = await fetchViaProxies(url);
+  const r = j.chart.result[0], m = r.meta || {};
+  const ts = r.timestamp || [];
+  const adj = r.indicators && r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose;
+  const close = r.indicators && r.indicators.quote && r.indicators.quote[0] && r.indicators.quote[0].close || [];
+  // Für lange Zeiträume: dividendenbereinigt (fairer Vergleich Aktie vs. ETF)
+  const src = (range==='10y'||range==='5y') && adj ? adj : close;
+  const t=[], c=[];
+  for(let i=0;i<ts.length;i++){ const v=src[i]; if(v!=null && isFinite(v)){ t.push(ts[i]*1000); c.push(+v.toPrecision(6)); } }
+  const price = m.regularMarketPrice ?? c[c.length-1];
+  const prev = m.chartPreviousClose ?? m.previousClose ?? c[0];
+  lastUpdate = Date.now();
+  return {t,c,price,prev,cur:m.currency||'EUR'};
+}
+
+// Concurrency-Limit, damit die Gratis-Proxys nicht überlastet werden
+function limiter(n){let a=0;const q=[];const next=()=>{if(a>=n||!q.length)return;a++;const {fn,res,rej}=q.shift();fn().then(res,rej).finally(()=>{a--;next()})};return fn=>new Promise((res,rej)=>{q.push({fn,res,rej});next()})}
+const limit = limiter(4);
+
+let mode = 'pending', lastUpdate = 0, readyResolve;
+const ready = new Promise(r=>readyResolve=r);
+const mem = new Map(), inflight = new Map();
+const TTL = {'1d':55e3,'5d':5*60e3,'1mo':15*60e3,'1y':3600e3,'5y':6*3600e3,'10y':12*3600e3};
+
+async function getRaw(sym,range,interval){
+  await ready;
+  const key = `${mode}|${sym}|${range}|${interval}`;
+  const c = mem.get(key); if(c && Date.now()-c.at < TTL[range]) return c.d;
+  if(range==='10y' && mode==='live'){ const ls=store.get('pd_c_'+key); if(ls && Date.now()-ls.at<TTL[range]){ mem.set(key,ls); return ls.d; } }
+  if(inflight.has(key)) return inflight.get(key);
+  const p = (async()=>{
+    const d = mode==='demo' ? demoRaw(sym,range,interval) : await limit(()=>fetchYahoo(sym,range,interval));
+    const e = {at:Date.now(),d}; mem.set(key,e);
+    if(range==='10y' && mode==='live') store.set('pd_c_'+key,e);
+    return d;
+  })();
+  inflight.set(key,p);
+  try{ return await p; } finally{ inflight.delete(key); }
+}
+// Liefert Kurse immer in EUR (Fremdwährungen werden mit dem jeweiligen EUR-Kurs umgerechnet)
+async function getSeries(sym,range,interval){
+  const raw = await getRaw(sym,range,interval);
+  if(raw.cur==='EUR') return raw;
+  let fx;
+  try{ fx = await getRaw('EUR'+raw.cur+'=X',range,interval); }catch(e){ fx=null; }
+  if(!fx) throw new Error('Kein Wechselkurs für '+raw.cur);
+  const fp = fx.price;
+  let j=0;
+  const c = raw.t.map((t,i)=>{
+    if(!fx.t.length) return raw.c[i]/fp;
+    while(j+1<fx.t.length && fx.t[j+1]<=t) j++;
+    const f = fx.t[j]<=t ? fx.c[j] : fx.c[0];
+    return raw.c[i]/f;
+  });
+  return {t:raw.t,c,price:raw.price/fp,prev:raw.prev/(fx.prev||fp),cur:'EUR',orig:raw.cur};
+}
+const quote = sym => getSeries(sym,'1d','15m');
+
+// ---------- Demo-Kurse (nur wenn keine Verbindung möglich ist) ----------
+const REF = Date.UTC(2026,0,1);
+function seedOf(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){return()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function demoParams(a){
+  const r = rng(seedOf(a.s));
+  const vol = ({ETF:.17,Gold:.2,Aktie:.36,Krypto:.85}[a.ty]||.3)*(0.8+0.5*r());
+  const dr = a.ty==='ETF'?0.065+0.02*r() : a.ty==='Gold'?0.06 : a.ty==='Krypto'?0.25 : -0.07+0.26*r();
+  const P=[5,2,0.9,0.35,0.1,0.03,0.008,0.0015,0.0003], A=[.5,.35,.25,.15,.08,.04,.02,.012,.006];
+  const w = P.map((p,i)=>({p,a:vol*A[i]*(0.6+0.8*r()),ph:r()*Math.PI*2}));
+  const x0 = w.reduce((s,k)=>s+k.a*Math.sin(k.ph),0);
+  return {dr,w,x0};
+}
+function demoPrice(a,t){
+  const p = a._dp || (a._dp = demoParams(a));
+  const y = (t-REF)/YEAR; let x = p.dr*y;
+  for(const k of p.w) x += k.a*Math.sin(2*Math.PI*y/k.p + k.ph);
+  return a.b*Math.exp(x-p.x0);
+}
+const RANGE_MS = {'1d':DAY,'5d':5*DAY,'1mo':30*DAY,'1y':YEAR,'5y':5*YEAR,'10y':10*YEAR};
+const STEP_MS = {'5m':3e5,'15m':9e5,'30m':18e5,'60m':36e5,'1d':DAY,'1wk':7*DAY};
+function demoRaw(sym,range,interval){
+  const a = BY[sym]; if(!a) throw new Error('Unbekannt');
+  const now = Date.now(), st = STEP_MS[interval];
+  const t=[],c=[];
+  for(let x=Math.floor((now-RANGE_MS[range])/st)*st; x<=now; x+=st){ t.push(x); c.push(demoPrice(a,x)); }
+  return {t,c,price:demoPrice(a,now),prev:demoPrice(a,now-DAY),cur:'EUR'};
+}
+
+async function probe(){
+  setStatus();
+  try{ await fetchYahoo(BENCH,'1d','15m'); mode='live'; }
+  catch(e){ console.warn('Live-Daten nicht erreichbar:',e); mode='demo'; }
+  mem.clear(); readyResolve(); setStatus();
+}
+function setStatus(){
+  const el = $('#status');
+  el.className = 'pill '+(mode==='live'?'live':mode==='demo'?'demo':'');
+  el.lastElementChild.textContent = mode==='live' ? 'Live · '+(lastUpdate?timeFmt(lastUpdate):'') : mode==='demo' ? 'Demo-Kurse' : 'Verbinde…';
+  $('#demoBanner').innerHTML = mode==='demo' ? `<div class="banner warn"><span>⚠️</span><div><b>Offline-Modus mit simulierten Kursen.</b> Die Live-Daten von Yahoo Finance waren gerade nicht erreichbar. Alles funktioniert, aber die Zahlen sind erfunden. <a href="#" class="link" data-act="retry">Erneut verbinden</a></div></div>` : '';
+}
+
+// =========================================================
+//  CHART (eigenes SVG, keine Bibliothek)
+// =========================================================
+let gid = 0;
+const ro = new ResizeObserver(es=>es.forEach(e=>{ const h=e.target; if(h._cfg && Math.abs((h._w||0)-h.clientWidth)>4) drawChart(h,h._cfg); }));
+function compact(v,step){ if(step!=null && step<10){ const d=step<0.1?3:step<1?2:1; return v.toLocaleString('de-AT',{minimumFractionDigits:d,maximumFractionDigits:d}); } const a=Math.abs(v); if(a>=1e6) return (v/1e6).toFixed(1).replace('.',',')+' Mio'; if(a>=1e4) return (v/1e3).toFixed(1).replace('.',',')+'k'; if(a>=100) return Math.round(v).toLocaleString('de-AT'); return v.toFixed(2).replace('.',','); }
+function drawChart(host,cfg){
+  host._cfg = cfg; host._w = host.clientWidth;
+  if(!host._obs){ ro.observe(host); host._obs=true; }
+  const W = Math.max(280,host.clientWidth), H = cfg.h||220, P = {l:4,r:56,t:12,b:24};
+  const S = cfg.series.map(s=>{ const t=[],v=[]; (s.t||[]).forEach((x,i)=>{ if(isFinite(x)&&isFinite(s.v[i])){t.push(x);v.push(s.v[i]);} }); return {...s,t,v}; }).filter(s=>s.t.length);
+  if(!S.length){ host.innerHTML = `<div class="empty muted small" style="height:${H}px;display:grid;place-items:center">Keine Kursdaten verfügbar</div>`; return; }
+  const xs = cfg.xMin ?? Math.min(...S.map(s=>s.t[0])), xe = cfg.xMax ?? Math.max(...S.map(s=>s.t[s.t.length-1]));
+  let lo=Infinity, hi=-Infinity;
+  S.forEach(s=>s.v.forEach(v=>{ if(v<lo)lo=v; if(v>hi)hi=v; }));
+  if(cfg.base!=null){ lo=Math.min(lo,cfg.base); hi=Math.max(hi,cfg.base); }
+  if(hi===lo){ hi+=Math.abs(hi)*.01||1; lo-=Math.abs(lo)*.01||1; }
+  const pad=(hi-lo)*.08; lo-=pad; hi+=pad;
+  const X = t => P.l + (t-xs)/((xe-xs)||1)*(W-P.l-P.r);
+  const Y = v => P.t + (1-(v-lo)/(hi-lo))*(H-P.t-P.b);
+  const id = 'g'+(++gid);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S[0].color}" stop-opacity=".28"/><stop offset="1" stop-color="${S[0].color}" stop-opacity="0"/></linearGradient>
+    <pattern id="${id}p" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--line)" stroke-width="3"/></pattern></defs>`;
+  for(let i=0;i<=3;i++){ const v=lo+(hi-lo)*(i/3); const y=Y(v); svg+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="${W-P.r+8}" y="${y+4}" font-size="11" fill="var(--muted)">${compact(v,(hi-lo)/3)}</text>`; }
+  const span = xe-xs, nT = W<500?3:5;
+  for(let i=0;i<nT;i++){ const t=xs+span*(i+.5)/nT; const d=new Date(t);
+    const lab = span<2*DAY ? timeFmt(t) : span<120*DAY ? d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'}) : d.toLocaleDateString('de-AT',{month:'short',year:'2-digit'});
+    svg+=`<text x="${X(t)}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="middle">${lab}</text>`; }
+  if(cfg.reveal!=null && cfg.reveal<xe){ const rx=X(cfg.reveal); svg+=`<rect x="${rx}" y="${P.t}" width="${W-P.r-rx}" height="${H-P.t-P.b}" fill="url(#${id}p)" opacity=".7"/><text x="${(rx+W-P.r)/2}" y="${(H-P.b+P.t)/2+10}" font-size="30" font-weight="800" fill="var(--faint)" text-anchor="middle">?</text>`; }
+  if(cfg.base!=null){ svg+=`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(cfg.base)}" y2="${Y(cfg.base)}" stroke="var(--faint)" stroke-dasharray="3 4"/>`; }
+  S.slice().reverse().forEach((s,ri)=>{
+    const d = s.t.map((t,i)=>(i?'L':'M')+X(t).toFixed(1)+','+Y(s.v[i]).toFixed(1)).join('');
+    if(s===S[0] && s.fill!==false) svg+=`<path d="${d}L${X(s.t[s.t.length-1]).toFixed(1)},${H-P.b}L${X(s.t[0]).toFixed(1)},${H-P.b}Z" fill="url(#${id})"/>`;
+    svg+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w||2.2}" stroke-linejoin="round" stroke-linecap="round" ${s.dash?`stroke-dasharray="${s.dash}"`:''}/>`;
+    const lt=s.t[s.t.length-1]; if(s===S[0]) svg+=`<circle cx="${X(lt)}" cy="${Y(s.v[s.v.length-1])}" r="4" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`;
+  });
+  svg += `<line class="hx" x1="0" x2="0" y1="${P.t}" y2="${H-P.b}" stroke="var(--muted)" stroke-dasharray="2 3" opacity="0"/>`;
+  S.forEach((s,i)=> svg+=`<circle class="hd hd${i}" r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2" opacity="0"/>`);
+  svg += `</svg><div class="tip"></div>`;
+  host.innerHTML = svg;
+  if(cfg.legend!==false && S.length>1) host.insertAdjacentHTML('beforeend',`<div class="legend">${S.map(s=>`<span><i style="background:${s.color}"></i>${s.label}</span>`).join('')}</div>`);
+  const svgEl = host.querySelector('svg'), tip = host.querySelector('.tip'), hx = host.querySelector('.hx');
+  const main = S[0];
+  const move = ev => {
+    const r = svgEl.getBoundingClientRect(); const px = (ev.clientX-r.left)/r.width*W;
+    const t = xs + (px-P.l)/(W-P.l-P.r)*(xe-xs);
+    let i = bsearch(main.t,t); if(i<0) i=0;
+    if(i+1<main.t.length && Math.abs(main.t[i+1]-t)<Math.abs(main.t[i]-t)) i++;
+    const tt = main.t[i]; const x = X(tt);
+    hx.setAttribute('x1',x); hx.setAttribute('x2',x); hx.setAttribute('opacity',1);
+    let html = `<div class="muted tiny" style="margin-bottom:3px">${span<3*DAY?dateFmt(tt)+' '+timeFmt(tt):dateFmt(tt)}</div>`;
+    S.forEach((s,k)=>{ const j=bsearch(s.t,tt); const dot=host.querySelector('.hd'+k); if(j<0){dot.setAttribute('opacity',0);return;}
+      dot.setAttribute('cx',X(s.t[j])); dot.setAttribute('cy',Y(s.v[j])); dot.setAttribute('opacity',1);
+      html += `<div><i style="background:${s.color}"></i>${S.length>1?s.label+': ':''}<b>${(cfg.fmt||eur)(s.v[j])}</b></div>`; });
+    tip.innerHTML = html; tip.style.opacity = 1;
+    const tw = tip.offsetWidth; let left = x/W*r.width + 12; if(left+tw > r.width) left = x/W*r.width - tw - 12;
+    tip.style.left = Math.max(0,left)+'px';
+  };
+  const leave = () => { tip.style.opacity=0; hx.setAttribute('opacity',0); $$('.hd',host).forEach(d=>d.setAttribute('opacity',0)); };
+  svgEl.addEventListener('pointermove',move); svgEl.addEventListener('pointerdown',move); svgEl.addEventListener('pointerleave',leave);
+}
+function bsearch(arr,t){ let lo=0,hi=arr.length-1,res=-1; while(lo<=hi){const m=(lo+hi)>>1; if(arr[m]<=t){res=m;lo=m+1}else hi=m-1;} return res; }
+function spark(c,up){
+  if(!c||c.length<2) return '';
+  const w=76,h=30; let mn=Math.min(...c), mx=Math.max(...c); if(mx===mn){mx+=1;mn-=1}
+  const pts = c.map((v,i)=>`${(i/(c.length-1)*w).toFixed(1)},${(h-3-(v-mn)/(mx-mn)*(h-6)).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><polyline fill="none" stroke="var(--${up?'up':'down'})" stroke-width="1.6" stroke-linejoin="round" points="${pts}"/></svg>`;
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// =========================================================
+//  NAVIGATION
+// =========================================================
+let view = 'markt';
+function goto(v){
+  view = v;
+  $$('.view').forEach(s=>s.classList.toggle('on',s.id==='view-'+v));
+  $$('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  window.scrollTo({top:0,behavior:'instant'});
+  if(v==='markt') renderMarket();
+  if(v==='depot') renderDepot();
+  if(v==='zeit') renderTM();
+  if(v==='lernen') renderLearn();
+}
+
+// =========================================================
+//  MARKT
+// =========================================================
+let cat = 'Beliebt';
+function renderCats(){ $('#cats').innerHTML = CATS.map(c=>`<button class="chip ${c===cat?'on':''}" data-act="cat" data-cat="${c}">${c}</button>`).join(''); }
+function marketList(){
+  const q = $('#q').value.trim().toLowerCase();
+  if(q) return ASSETS.filter(a=>(a.n+' '+a.s+' '+a.ty+' '+a.c).toLowerCase().includes(q));
+  if(cat==='Beliebt') return POPULAR.map(s=>BY[s]);
+  if(cat==='Alle') return ASSETS;
+  return ASSETS.filter(a=>a.c===cat);
+}
+function renderMarket(){
+  renderCats();
+  const list = marketList();
+  $('#mktList').innerHTML = list.length ? list.map(a=>`
+    <button class="row" data-act="open" data-s="${a.s}">
+      ${avatar(a)}
+      <div class="nm"><b>${esc(a.n)}</b><span>${a.s.replace(/\.(DE|VI|AS|PA|SW|CO|T)$/,'')}${tag(a)}</span></div>
+      <div class="sp" data-sp="${a.s}"></div>
+      <div class="px" data-px="${a.s}"><b><span class="skel"></span></b><span class="skel" style="width:44px;margin-top:4px"></span></div>
+    </button>`).join('') : `<div class="empty muted">Nichts gefunden.</div>`;
+  list.forEach(a=>loadRow(a.s));
+}
+async function loadRow(s){
+  try{
+    const q = await quote(s); const ch = q.price/q.prev-1;
+    const px = document.querySelector(`[data-px="${CSS.escape(s)}"]`); if(!px) return;
+    px.innerHTML = `<b>${priceFmt(q.price)}</b><span class="chg ${cls(ch)}">${pct(ch)}</span>`;
+    const sp = document.querySelector(`[data-sp="${CSS.escape(s)}"]`); if(sp) sp.innerHTML = spark(q.c, ch>=0);
+    $('#mktUpdated').textContent = 'Stand '+timeFmt(Date.now());
+    setStatus();
+  }catch(e){
+    const px = document.querySelector(`[data-px="${CSS.escape(s)}"]`);
+    if(px) px.innerHTML = `<b class="muted">–</b><span class="tiny muted">nicht verfügbar</span>`;
+  }
+}
+
+// =========================================================
+//  LIVE-DEPOT (gespeichert im Browser)
+// =========================================================
+let P = store.get('pd_live',null);
+const saveP = () => store.set('pd_live',P);
+function holdings(){
+  const h = {};
+  for(const tx of (P?P.tx:[])){
+    const x = h[tx.s] || (h[tx.s]={sh:0,cost:0});
+    if(tx.side==='buy'){ x.sh+=tx.sh; x.cost+=tx.eur; }
+    else { const f = x.sh>0 ? tx.sh/x.sh : 1; x.cost -= x.cost*f; x.sh -= tx.sh; }
+  }
+  for(const k in h) if(h[k].sh<1e-9) delete h[k];
+  return h;
+}
+function openDepot(amount){
+  P = {start:Date.now(), startCash:amount, cash:amount, tx:[]};
+  saveP(); toast('Depot eröffnet – viel Glück! 🍀'); renderDepot();
+}
+async function trade(s,side,amountEur){
+  const a = BY[s]; const q = await quote(s); const price = q.price;
+  let bp = null; try{ bp = (await quote(BENCH)).price; }catch(e){}
+  if(side==='buy'){
+    if(amountEur<=0) return toast('Bitte einen Betrag eingeben');
+    if(amountEur>P.cash+1e-6) return toast('Nicht genug Spielgeld');
+    const sh = amountEur/price;
+    P.cash -= amountEur;
+    P.tx.push({s,side,eur:amountEur,sh,price,t:Date.now(),bp});
+    toast(`Gekauft: ${shFmt(sh)} × ${a.n}`);
+  }else{
+    const h = holdings()[s]; if(!h) return;
+    let sh = Math.min(h.sh, amountEur/price); if(h.sh-sh < 1e-6) sh = h.sh;
+    const val = sh*price;
+    P.cash += val;
+    P.tx.push({s,side,eur:val,sh,price,t:Date.now(),bp});
+    toast(`Verkauft: ${eur(val)}`);
+  }
+  saveP(); closeSheet(); goto('depot');
+}
+function benchState(){ // "Was wäre, wenn du jeden Kauf stattdessen in den Welt-ETF gesteckt hättest?"
+  let cash = P.startCash, sh = 0;
+  for(const tx of P.tx){
+    if(!tx.bp) return null;
+    if(tx.side==='buy'){ cash -= tx.eur; sh += tx.eur/tx.bp; }
+    else { const take = Math.min(tx.eur/tx.bp, sh); sh -= take; cash += take*tx.bp; }
+  }
+  return {cash,sh};
+}
+async function depotHistory(){
+  const age = Date.now()-P.start;
+  const [range,iv] = age<4*DAY?['5d','15m'] : age<25*DAY?['1mo','60m'] : age<330*DAY?['1y','1d'] : ['5y','1wk'];
+  const syms = [...new Set(P.tx.map(t=>t.s))];
+  const useBench = P.tx.length && P.tx.every(t=>t.bp);
+  if(useBench && !syms.includes(BENCH)) syms.push(BENCH);
+  const ser = {};
+  await Promise.all(syms.map(async s=>{ try{ ser[s]=await getSeries(s,range,iv); }catch(e){} }));
+  let grid = new Set();
+  syms.forEach(s=>ser[s] && ser[s].t.forEach(t=>{ if(t>=P.start) grid.add(t); }));
+  grid = [...grid].sort((a,b)=>a-b);
+  const at = (s,t)=>{ const se=ser[s]; if(!se) return null; const i=bsearch(se.t,t); return i<0?se.c[0]:se.c[i]; };
+  const T=[P.start], V=[P.startCash], B=[P.startCash];
+  for(const t of grid){
+    let cash=P.startCash, sh={}, bc=P.startCash, bs=0;
+    for(const tx of P.tx){ if(tx.t>t) break;
+      if(tx.side==='buy'){ cash-=tx.eur; sh[tx.s]=(sh[tx.s]||0)+tx.sh; if(tx.bp){bc-=tx.eur; bs+=tx.eur/tx.bp;} }
+      else { cash+=tx.eur; sh[tx.s]-=tx.sh; if(tx.bp){ const k=Math.min(tx.eur/tx.bp,bs); bs-=k; bc+=k*tx.bp; } } }
+    let v=cash; for(const s in sh){ const p=at(s,t); v += sh[s]*(p ?? 0); }
+    T.push(t); V.push(v); B.push(bc + bs*(at(BENCH,t)??0));
+  }
+  return {T,V,B:useBench?B:null};
+}
+async function renderDepot(){
+  const el = $('#view-depot');
+  if(!P){
+    el.innerHTML = `
+      <h1>Wie würdest du heute investieren?</h1>
+      <p class="lead">Eröffne ein Spieldepot mit virtuellem Geld, kauf zu echten aktuellen Kursen ein – und schau in den nächsten Tagen und Wochen immer wieder rein, wie sich deine Entscheidungen entwickeln.</p>
+      <div class="card" style="margin-top:18px">
+        <h3>Startkapital wählen</h3>
+        <div class="yearpick" id="cashPick">
+          ${[1000,5000,10000,50000].map((v,i)=>`<button class="${i===0?'on':''}" data-act="pickcash" data-v="${v}">${v>=1000?v/1000+'k':v}<small>${eur0(v)}</small></button>`).join('')}
+        </div>
+        <div class="field"><input id="cashIn" inputmode="decimal" value="1000"><span>€</span></div>
+        <button class="btn primary block" style="margin-top:14px" data-act="opendepot">Depot eröffnen</button>
+        <p class="tiny muted" style="margin-top:10px">Alles bleibt in deinem Browser gespeichert. Kein echtes Geld, keine Anmeldung.</p>
+      </div>`;
+    return;
+  }
+  const h = holdings(); const syms = Object.keys(h);
+  el.innerHTML = `
+    <div class="card">
+      <div class="muted small">Depotwert · seit ${dateFmt(P.start)}</div>
+      <div class="big" id="dVal"><span class="skel" style="width:180px;height:32px"></span></div>
+      <div id="dChg" class="small" style="margin-top:4px">&nbsp;</div>
+      <div class="chart" id="dChart" style="min-height:220px"></div>
+      <div class="kpis">
+        <div class="kpi"><span>Startkapital</span><b>${eur0(P.startCash)}</b></div>
+        <div class="kpi"><span>Investiert</span><b id="dInv">–</b></div>
+        <div class="kpi"><span>Spielgeld frei</span><b>${eur(P.cash)}</b></div>
+      </div>
+    </div>
+    <div id="dBench"></div>
+    <div class="section-head"><h2>Positionen</h2><button class="link" data-act="goto" data-view="markt">+ Kaufen</button></div>
+    <div class="card" id="dPos">${syms.length? '' : `<div class="empty"><div class="emo">🛒</div><b>Noch nichts gekauft</b><p class="muted small" style="margin-top:4px">Such dir im Markt etwas aus. Tipp: Probier eine Mischung aus ETF und ein paar Einzelaktien.</p><button class="btn primary" style="margin-top:14px" data-act="goto" data-view="markt">Zum Markt</button></div>`}</div>
+    ${P.tx.length?`<div class="section-head"><h2>Verlauf</h2></div><div class="card small">${P.tx.slice().reverse().slice(0,30).map(tx=>`<div class="insight"><span class="ic">${tx.side==='buy'?'🟢':'🔴'}</span><div style="flex:1"><b>${tx.side==='buy'?'Kauf':'Verkauf'} ${esc(BY[tx.s].n)}</b><div class="tiny muted">${dateFmt(tx.t)} ${timeFmt(tx.t)} · ${shFmt(tx.sh)} Stk. zu ${priceFmt(tx.price)}</div></div><b>${eur(tx.eur)}</b></div>`).join('')}</div>`:''}
+    <div style="text-align:center;margin-top:18px"><button class="btn ghost small muted" data-act="resetdepot">Depot zurücksetzen</button></div>`;
+  // Positionen bewerten
+  let invested = 0, value = P.cash;
+  const rows = await Promise.all(syms.map(async s=>{ try{ const q=await quote(s); return {s,q}; }catch(e){ return {s,q:null}; } }));
+  let posHTML='';
+  for(const {s,q} of rows){
+    const a=BY[s], x=h[s]; invested+=x.cost;
+    const val = q ? x.sh*q.price : x.cost; value+=val;
+    const r = val/x.cost-1;
+    posHTML += `<div class="pos" data-act="open" data-s="${s}">${avatar(a)}<div class="nm"><b>${esc(a.n)}</b><span>${shFmt(x.sh)} Stk. · Einstand ${eur(x.cost)}</span></div><div class="px"><b>${eur(val)}</b><span class="chg ${cls(r)}">${pct(r)}</span></div></div>`;
+  }
+  if(syms.length) $('#dPos').innerHTML = posHTML;
+  const tot = value/P.startCash-1;
+  $('#dVal').textContent = eur(value);
+  $('#dChg').innerHTML = `<span class="${cls(tot)}"><b>${sgnEur(value-P.startCash)} (${pct(tot)})</b></span> <span class="muted">gesamt</span>`;
+  $('#dInv').textContent = eur0(invested);
+  const bs = benchState();
+  if(bs && P.tx.length){
+    try{ const bq = await quote(BENCH); const bv = bs.cash + bs.sh*bq.price; const diff = value-bv;
+      $('#dBench').innerHTML = `<div class="card"><div style="display:flex;gap:12px;align-items:center"><span style="font-size:26px">${diff>=0?'🏆':'🐢'}</span><div><b>${diff>=0?'Du liegst vor dem Welt-ETF':'Der Welt-ETF liegt vorne'}</b><div class="small muted">Hättest du jeden Kauf stattdessen in den MSCI World gesteckt, stündest du bei <b>${eur(bv)}</b> – das sind ${diff>=0?'':'<span class="down">'}${sgnEur(diff)}${diff>=0?'':'</span>'} Unterschied.</div></div></div></div>`; }catch(e){}
+  }
+  // Chart
+  try{
+    const hist = await depotHistory();
+    hist.T.push(Date.now()); hist.V.push(value); if(hist.B && bs) hist.B.push(bs.cash + bs.sh*((await quote(BENCH)).price));
+    const series = [{t:hist.T,v:hist.V,color:css('--accent'),label:'Dein Depot'}];
+    if(hist.B) series.push({t:hist.T,v:hist.B,color:css('--muted'),label:'Welt-ETF stattdessen',dash:'4 4',w:1.6});
+    drawChart($('#dChart'),{series,base:P.startCash,h:220});
+  }catch(e){ $('#dChart').innerHTML=''; }
+}
+
+// =========================================================
+//  DETAIL-SHEET (Chart + Kaufen/Verkaufen)
+// =========================================================
+let sheetSym=null, sheetRange='1T', tradeSide='buy';
+const RANGES = {'1T':['1d','5m'],'1W':['5d','30m'],'1M':['1mo','60m'],'1J':['1y','1d'],'5J':['5y','1wk']};
+function openSheet(s){
+  sheetSym=s; sheetRange='1T'; tradeSide='buy';
+  const a = BY[s], r = RISK[a.ty];
+  const held = P && holdings()[s];
+  $('#sheet').innerHTML = `
+    <div class="grab"></div>
+    <div class="sheet-head">${avatar(a)}<div><h2>${esc(a.n)}</h2><div class="small muted">${a.s} ${tag(a)}</div></div><button class="x" data-act="close">×</button></div>
+    <div style="margin-top:14px"><div class="big" id="shPx"><span class="skel" style="width:140px;height:30px"></span></div><div id="shChg" class="small">&nbsp;</div></div>
+    <div class="chart" id="shChart" style="min-height:200px"></div>
+    <div class="ranges">${Object.keys(RANGES).map(k=>`<button class="${k===sheetRange?'on':''}" data-act="range" data-r="${k}">${k}</button>`).join('')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px">
+      <p class="small muted" style="flex:1">${esc(a.d)}</p>
+      <div style="text-align:right"><div class="tiny muted" style="margin-bottom:4px">Risiko</div><div class="risk">${[1,2,3,4,5].map(i=>`<i class="${i<=r?'f '+(r<=2?'l':r>=5?'h':''):''}"></i>`).join('')}</div></div>
+    </div>
+    ${held?`<div class="card" style="margin-top:14px;padding:12px 14px;background:var(--surface2)"><div class="small" style="display:flex;justify-content:space-between"><span class="muted">Im Depot</span><b id="shHeld">${shFmt(held.sh)} Stk.</b></div></div>`:''}
+    <div style="margin-top:16px" id="shTrade"></div>`;
+  $('#backdrop').classList.add('on'); $('#sheet').classList.add('on');
+  renderTrade(); loadSheetChart();
+}
+function closeSheet(){ $('#backdrop').classList.remove('on'); $('#sheet').classList.remove('on'); sheetSym=null; }
+async function loadSheetChart(){
+  const s = sheetSym; if(!s) return;
+  const [range,iv] = RANGES[sheetRange];
+  try{
+    const [se,q] = await Promise.all([getSeries(s,range,iv), quote(s)]);
+    if(s!==sheetSym) return;
+    const t = se.t.slice(), v = se.c.slice();
+    if(sheetRange==='1T' || t[t.length-1] < Date.now()-DAY){ t.push(Math.max(Date.now(), t[t.length-1]+1)); v.push(q.price); }
+    const first = sheetRange==='1T' ? q.prev : v[0];
+    const ch = q.price/first-1;
+    $('#shPx').textContent = priceFmt(q.price);
+    $('#shChg').innerHTML = `<span class="${cls(ch)}"><b>${sgnEur(q.price-first)} (${pct(ch)})</b></span> <span class="muted">${{'1T':'heute','1W':'1 Woche','1M':'1 Monat','1J':'1 Jahr','5J':'5 Jahre'}[sheetRange]}</span>${se.orig?` <span class="tiny muted">· umgerechnet aus ${se.orig}</span>`:''}`;
+    drawChart($('#shChart'),{series:[{t,v,color:css(ch>=0?'--up':'--down'),label:BY[s].n}],base:sheetRange==='1T'?q.prev:null,h:200});
+    const hint = $('#shHint'); if(hint) updateHint();
+  }catch(e){
+    $('#shChart').innerHTML = `<div class="empty muted small">Kursdaten gerade nicht verfügbar.</div>`;
+    $('#shPx').textContent='–';
+  }
+}
+function renderTrade(){
+  const box = $('#shTrade'); if(!box) return;
+  if(!P){ box.innerHTML = `<button class="btn primary block" data-act="needdepot">Spieldepot eröffnen, um zu kaufen</button>`; return; }
+  const held = holdings()[sheetSym];
+  box.innerHTML = `
+    ${held?`<div class="seg"><button class="${tradeSide==='buy'?'on':''}" data-act="side" data-side="buy">Kaufen</button><button class="${tradeSide==='sell'?'on':''}" data-act="side" data-side="sell">Verkaufen</button></div>`:''}
+    <div class="field"><input id="amt" inputmode="decimal" placeholder="0" autocomplete="off"><span>€</span></div>
+    <div class="quick">${tradeSide==='buy'?[100,250,500].map(v=>`<button data-act="amt" data-v="${v}">${v} €</button>`).join('')+`<button data-act="amt" data-v="max">Max</button>`:[.25,.5,.75,1].map(f=>`<button data-act="amt" data-f="${f}">${f===1?'Alles':f*100+' %'}</button>`).join('')}</div>
+    <div class="tiny muted" id="shHint" style="margin-top:10px;min-height:16px">Verfügbar: ${eur(P.cash)}</div>
+    <button class="btn ${tradeSide==='buy'?'buy':'sell'} block" style="margin-top:10px" data-act="dotrade">${tradeSide==='buy'?'Kaufen':'Verkaufen'}</button>`;
+  $('#amt').addEventListener('input',updateHint);
+}
+async function updateHint(){
+  const hint=$('#shHint'); if(!hint||!sheetSym) return;
+  const v = parseNum($('#amt').value);
+  try{ const q=await quote(sheetSym);
+    if(tradeSide==='buy') hint.textContent = v>0 ? `≈ ${shFmt(v/q.price)} Stück zu ${priceFmt(q.price)} · verfügbar ${eur(P.cash)}` : `Verfügbar: ${eur(P.cash)}`;
+    else { const h=holdings()[sheetSym]; hint.textContent = `Positionswert: ${eur(h.sh*q.price)}`; }
+  }catch(e){}
+}
+
+// =========================================================
+//  ZEITMASCHINE
+// =========================================================
+const TM = {state:'setup', years:5, budget:1000, alloc:{}, data:{}, sim:null, cursor:0, playing:false};
+const SC = () => store.get('pd_scenarios',[]);
+async function loadTMData(){
+  TM.state='loading'; renderTM();
+  const syms = ASSETS.map(a=>a.s); let done=0;
+  await Promise.all(syms.map(async s=>{
+    try{ TM.data[s] = await getSeries(s,'10y','1wk'); }catch(e){ TM.data[s]=null; }
+    done++; const bar=$('#tmProg'); if(bar){ bar.style.width=(done/syms.length*100)+'%'; $('#tmProgT').textContent=`${done} von ${syms.length} Kursverläufen geladen`; }
+  }));
+  TM.state='pick'; renderTM();
+}
+const tmStart = () => Date.now()-TM.years*YEAR;
+function priceAt(se,t){ if(!se||!se.t.length) return null; const i=bsearch(se.t,t); return i<0?null:se.c[i]; }
+function availableAt(s,t){ const se=TM.data[s]; return se && se.t.length && se.t[0] <= t+14*DAY ? true : false; }
+function priceStart(s){ const se=TM.data[s], t=tmStart(); const p=priceAt(se,t); if(p!=null) return p; return se&&se.t.length?se.c[0]:null; }
+
+function renderTM(){
+  const el = $('#view-zeit');
+  if(TM.state==='setup'){
+    const sc = SC();
+    el.innerHTML = `
+      <h1>Zeitmaschine ⏳</h1>
+      <p class="lead">Stell dir vor, du hättest damals Geld anlegen müssen – ohne zu wissen, was kommt. Wofür hättest du dich entschieden? Danach spulst du vor und siehst, was daraus geworden wäre.</p>
+      <div class="card" style="margin-top:18px">
+        <h3>Wie weit zurück?</h3>
+        <div class="yearpick">${[1,3,5,8].map(y=>`<button class="${y===TM.years?'on':''}" data-act="tmyears" data-v="${y}">${y}<small>${y===1?'Jahr':'Jahre'} · ${new Date(Date.now()-y*YEAR).getFullYear()}</small></button>`).join('')}</div>
+        <h3 style="margin-top:18px">Wie viel Geld?</h3>
+        <div class="field"><input id="tmBudget" inputmode="decimal" value="${TM.budget}"><span>€</span></div>
+        <button class="btn primary block" style="margin-top:14px" data-act="tmload">Einsteigen & zurückreisen</button>
+        <p class="tiny muted" style="margin-top:10px">Historische Kurse inkl. Dividenden, umgerechnet in Euro. Gebühren und Steuern bleiben unberücksichtigt.</p>
+      </div>
+      ${sc.length?`<div class="section-head"><h2>Deine bisherigen Zeitreisen</h2></div><div class="card">${sc.slice().reverse().slice(0,10).map(x=>{const r=x.final/x.budget-1, e=x.etf/x.budget-1;return `<div class="insight"><span class="ic">${x.final>=x.etf?'🏆':'🐢'}</span><div style="flex:1"><b>${eur0(x.budget)} vor ${x.years} ${x.years===1?'Jahr':'Jahren'}</b><div class="tiny muted">${dateFmt(x.at)} · ${Object.keys(x.alloc).length} Positionen · ETF: ${pct(e,1)}</div></div><b class="${cls(r)}">${pct(r,1)}</b></div>`}).join('')}</div>`:''}`;
+    return;
+  }
+  if(TM.state==='loading'){
+    el.innerHTML = `<div class="card" style="margin-top:30px;text-align:center;padding:36px 20px"><div style="font-size:46px">🕰️</div><h2 style="margin-top:8px">Reise ins Jahr ${new Date(tmStart()).getFullYear()} …</h2><p class="muted small" id="tmProgT" style="margin-top:6px">Lade Kursverläufe</p><div class="progress"><i id="tmProg"></i></div></div>`;
+    return;
+  }
+  if(TM.state==='pick'){
+    const st = tmStart(), dstr = new Date(st).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'});
+    const groups = ['ETFs','USA','Deutschland','Österreich','Europa','Asien','Krypto & Gold'];
+    el.innerHTML = `
+      <button class="link" data-act="tmback">← Zurück</button>
+      <h1 style="margin-top:8px">Es ist der ${dstr}.</h1>
+      <p class="lead">Du hast <b>${eur0(TM.budget)}</b>. Wie würdest du sie <i>heute</i> – also damals – anlegen? Die Zukunft ist dir unbekannt. Angezeigt werden nur Infos, die du damals schon gehabt hättest.</p>
+      ${mode==='demo'?`<div class="banner warn" style="margin-top:12px"><span>⚠️</span><div>Offline: Die Kursverläufe sind simuliert, nicht echt.</div></div>`:''}
+      <div class="list">${groups.map(g=>`<div class="group-h">${g}</div>`+ASSETS.filter(a=>a.c===g).map(a=>{
+        const ok = availableAt(a.s,st); const p0 = ok?priceStart(a.s):null; const pPrev = ok?priceAt(TM.data[a.s],st-YEAR):null;
+        const prevR = p0&&pPrev ? p0/pPrev-1 : null; const v = TM.alloc[a.s]||0;
+        return `<div class="tmrow ${ok?'':'na'}">${avatar(a)}<div class="nm"><b>${esc(a.n)}${tag(a)}</b><span>${ok?`Kurs damals ${priceFmt(p0)}${prevR!=null?` · Vorjahr <span class="${cls(prevR)}">${pct(prevR,0)}</span>`:''}`:'Damals noch nicht handelbar'}</span></div>
+          ${ok?`<div class="stepper ${v?'has':''}"><button data-act="tmstep" data-s="${a.s}" data-d="-1">−</button><input data-tmin="${a.s}" inputmode="decimal" value="${v||''}" placeholder="0"><button data-act="tmstep" data-s="${a.s}" data-d="1">+</button></div>`:'<span></span>'}</div>`;
+      }).join('')).join('')}</div>
+      <div class="alloc-bar"><div style="flex:1"><div class="small"><b id="tmSum">0 €</b> <span class="muted">von ${eur0(TM.budget)} verteilt</span></div><div class="meter"><i id="tmMeter"></i></div></div><button class="btn primary" id="tmGo" data-act="tmgo">Vorspulen ▶</button></div>`;
+    $$('[data-tmin]').forEach(inp=>inp.addEventListener('input',()=>{ setAlloc(inp.dataset.tmin, parseNum(inp.value), false); }));
+    updateAllocBar();
+    return;
+  }
+  if(TM.state==='reveal') renderReveal();
+}
+function allocSum(){ return Object.values(TM.alloc).reduce((s,v)=>s+v,0); }
+function setAlloc(s,v,syncInput=true){
+  v = Math.max(0, Math.round(v*100)/100);
+  const other = allocSum()-(TM.alloc[s]||0);
+  if(other+v > TM.budget) v = Math.max(0, TM.budget-other);
+  if(v>0) TM.alloc[s]=v; else delete TM.alloc[s];
+  const inp = document.querySelector(`[data-tmin="${CSS.escape(s)}"]`);
+  if(inp){ if(syncInput) inp.value = v||''; inp.parentElement.classList.toggle('has',v>0); }
+  updateAllocBar();
+}
+function updateAllocBar(){
+  const sum = allocSum(); const m=$('#tmMeter'); if(!m) return;
+  m.style.width = Math.min(100,sum/TM.budget*100)+'%';
+  $('#tmSum').textContent = eur0(sum);
+  $('#tmGo').disabled = sum<=0;
+}
+function maxDD(vals,upto){ let peak=-Infinity, dd=0; for(let i=0;i<=upto&&i<vals.length;i++){ const v=vals[i]; if(v>peak)peak=v; if(peak>0) dd=Math.min(dd,v/peak-1); } return dd; }
+function simulate(){
+  const st = tmStart(), now = Date.now();
+  const grid=[]; for(let t=st; t<now-3*DAY; t+=7*DAY) grid.push(t); grid.push(now);
+  const lastIdx = grid.length-1;
+  const val = (s,sh)=>{ const se=TM.data[s]; return grid.map((t,i)=> i===lastIdx ? sh*se.price : sh*(priceAt(se,t) ?? se.c[0])); };
+  const pos = Object.entries(TM.alloc).map(([s,e])=>{ const p0=priceStart(s); const sh=e/p0; return {s,eur:e,sh,vals:val(s,sh)}; });
+  const cash = TM.budget-allocSum();
+  const total = grid.map((_,i)=>cash+pos.reduce((a,p)=>a+p.vals[i],0));
+  const eShares = TM.budget/priceStart(BENCH);
+  const etf = TM.data[BENCH] ? val(BENCH,eShares) : null;
+  return {grid,pos,cash,total,etf};
+}
+function renderReveal(){
+  const el = $('#view-zeit'); const S = TM.sim; const n = S.grid.length;
+  const marks = []; for(let y=1;y<TM.years;y++){ const t=tmStart()+y*YEAR; marks.push({label:`+${y} ${y===1?'Jahr':'Jahre'}`, i:Math.min(n-1,bsearch(S.grid,t))}); }
+  marks.push({label:'Heute',i:n-1});
+  el.innerHTML = `
+    <button class="link" data-act="tmedit">← Auswahl ändern</button>
+    <div class="card" style="margin-top:10px">
+      <div class="muted small" id="rvDate"></div>
+      <div class="big" id="rvVal"></div>
+      <div class="small" id="rvChg"></div>
+      <div class="chart" id="rvChart" style="min-height:240px"></div>
+      <input type="range" id="rvSlider" min="0" max="${n-1}" value="${TM.cursor}">
+      <div class="timeline"><button data-act="tmplay">${TM.playing?'⏸ Pause':'▶ Abspielen'}</button>${marks.map(m=>`<button data-act="tmjump" data-i="${m.i}">${m.label}</button>`).join('')}</div>
+    </div>
+    <div class="card" style="margin-top:12px"><h3>Deine Positionen</h3><table class="res" style="margin-top:8px"><thead><tr><th>Anlage</th><th>Einsatz</th><th>Wert</th><th>Rendite</th><th>Tiefster Punkt</th></tr></thead><tbody id="rvTable"></tbody></table></div>
+    <div id="rvEnd"></div>`;
+  $('#rvSlider').addEventListener('input',e=>{ TM.playing=false; setCursor(+e.target.value); });
+  setCursor(TM.cursor);
+}
+function setCursor(i){
+  const S=TM.sim; TM.cursor=i; const t=S.grid[i];
+  const v=S.total[i], r=v/TM.budget-1;
+  $('#rvDate').textContent = (i===S.grid.length-1?'Heute, ':'')+new Date(t).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'});
+  $('#rvVal').textContent = eur(v);
+  $('#rvChg').innerHTML = `<span class="${cls(r)}"><b>${sgnEur(v-TM.budget)} (${pct(r)})</b></span>${S.etf?` <span class="muted">· Welt-ETF: ${eur0(S.etf[i])}</span>`:''}`;
+  $('#rvSlider').value = i;
+  const T=S.grid.slice(0,i+1);
+  const series=[{t:T,v:S.total.slice(0,i+1),color:css('--accent'),label:'Deine Auswahl'}];
+  if(S.etf) series.push({t:T,v:S.etf.slice(0,i+1),color:css('--muted'),label:'Alles in Welt-ETF',dash:'4 4',w:1.6});
+  series.push({t:[S.grid[0],t],v:[TM.budget,TM.budget],color:css('--faint'),label:'Unterm Kopfkissen',dash:'1 4',w:1.4});
+  drawChart($('#rvChart'),{series,xMin:S.grid[0],xMax:S.grid[S.grid.length-1],reveal:t,base:null,h:240});
+  $('#rvTable').innerHTML = S.pos.slice().sort((a,b)=>b.vals[i]-a.vals[i]).map(p=>{ const rr=p.vals[i]/p.eur-1, dd=maxDD(p.vals,i);
+    return `<tr><td><b>${esc(BY[p.s].n)}</b></td><td>${eur0(p.eur)}</td><td>${eur0(p.vals[i])}</td><td class="${cls(rr)}"><b>${pct(rr,0)}</b></td><td class="${dd<-.3?'down':'muted'}">${pct(dd,0)}</td></tr>`; }).join('')
+    + (S.cash>0.5?`<tr><td class="muted">Nicht investiert</td><td>${eur0(S.cash)}</td><td>${eur0(S.cash)}</td><td class="muted">±0 %</td><td class="muted">–</td></tr>`:'');
+  const end = $('#rvEnd');
+  if(i===S.grid.length-1){ if(!end.innerHTML) end.innerHTML = endHTML(); }
+  else end.innerHTML='';
+}
+function play(){
+  const S=TM.sim; if(TM.cursor>=S.grid.length-1) TM.cursor=0;
+  TM.playing=true; const btn=$('[data-act="tmplay"]'); if(btn) btn.textContent='⏸ Pause';
+  const total=S.grid.length, dur=Math.min(9000,2500+total*8), startI=TM.cursor, t0=performance.now();
+  const step=now=>{ if(!TM.playing||TM.state!=='reveal') return;
+    const i=Math.min(total-1, startI+Math.floor((now-t0)/dur*total));
+    if(i!==TM.cursor) setCursor(i);
+    if(i<total-1) requestAnimationFrame(step); else { TM.playing=false; const b=$('[data-act="tmplay"]'); if(b) b.textContent='▶ Nochmal'; }
+  };
+  requestAnimationFrame(step);
+}
+function endHTML(){
+  const S=TM.sim, last=S.grid.length-1, final=S.total[last], etf=S.etf?S.etf[last]:null;
+  const r=final/TM.budget-1, cagr=Math.pow(final/TM.budget,1/TM.years)-1;
+  // speichern (einmal pro Reise)
+  if(!TM.saved){ const sc=SC(); sc.push({at:Date.now(),years:TM.years,budget:TM.budget,alloc:{...TM.alloc},final,etf:etf??final}); store.set('pd_scenarios',sc.slice(-30)); TM.saved=true; }
+  let emo,title,sub;
+  if(final<TM.budget){ emo='📉'; title='Lehrgeld bezahlt'; sub='Du hast Geld verloren. Das passiert auch Profis – wichtig ist, warum.'; }
+  else if(etf!=null && final<etf){ emo='🐢'; title='Der langweilige ETF hätte gewonnen'; sub='Ein einziger breit gestreuter Fonds hätte dich geschlagen – ganz ohne Aktienauswahl.'; }
+  else if(etf!=null && final<etf*1.15){ emo='👍'; title='Auf Marktniveau'; sub='Solide! Du liegst ungefähr gleichauf mit dem Weltmarkt.'; }
+  else { emo='🚀'; title='Du hast den Markt geschlagen'; sub='Glückwunsch! Aber Achtung: Im Nachhinein ist es leicht. Wäre dir das auch ohne Wissen um die Zukunft gelungen?'; }
+  const ins=[];
+  const sorted=S.pos.slice().sort((a,b)=>(b.vals[last]/b.eur)-(a.vals[last]/a.eur));
+  if(sorted.length){ const b=sorted[0], w=sorted[sorted.length-1];
+    ins.push(['🥇',`<b>Bester Griff:</b> ${esc(BY[b.s].n)} mit ${pct(b.vals[last]/b.eur-1,0)}.`]);
+    if(sorted.length>1) ins.push(['🥀',`<b>Schlechtester Griff:</b> ${esc(BY[w.s].n)} mit ${pct(w.vals[last]/w.eur-1,0)}.`]);
+    const crash=S.pos.map(p=>({p,dd:maxDD(p.vals,last)})).sort((a,b)=>a.dd-b.dd)[0];
+    if(crash && crash.dd<-.25) ins.push(['🎢',`<b>Achterbahn:</b> ${esc(BY[crash.p.s].n)} lag zwischendurch ${pct(crash.dd,0).replace('−','')} im Minus. Hättest du da die Nerven behalten – oder panisch verkauft?`]);
+  }
+  const pdd = maxDD(S.total,last);
+  ins.push(['📊',`<b>Dein Depot</b> fiel im schlimmsten Moment um ${pct(pdd,0).replace('−','')} vom Höchststand.${S.etf?` Beim Welt-ETF waren es ${pct(maxDD(S.etf,last),0).replace('−','')}.`:''}`]);
+  if(S.pos.length===1 && BY[S.pos[0].s].ty!=='ETF') ins.push(['🎯','<b>Alles auf eine Karte:</b> Mit nur einer Einzelaktie hängt dein ganzes Geld an einem einzigen Unternehmen. Streuung senkt dieses Risiko.']);
+  else if(S.pos.length>=3) ins.push(['🧺',`<b>Gestreut:</b> ${S.pos.length} Positionen verteilen das Risiko – einzelne Ausreißer nach unten tun weniger weh.`]);
+  if(S.cash>TM.budget*.2) ins.push(['🛏️',`<b>${eur0(S.cash)} lagen ungenutzt</b> unterm Kopfkissen. Ohne Zinsen verliert Bargeld durch Inflation jedes Jahr an Kaufkraft.`]);
+  if(etf!=null) ins.push(['🌍',`<b>Alles in den MSCI World:</b> Aus ${eur0(TM.budget)} wären ${eur0(etf)} geworden (${pct(etf/TM.budget-1,0)}).`]);
+  return `
+    <div class="card verdict" style="margin-top:12px"><div class="emo">${emo}</div><h2 style="margin-top:6px">${title}</h2><p class="muted small" style="margin-top:6px;max-width:460px;margin-inline:auto">${sub}</p>
+      <div class="kpis" style="text-align:left"><div class="kpi"><span>Gesamt</span><b class="${cls(r)}">${pct(r,1)}</b></div><div class="kpi"><span>Pro Jahr</span><b class="${cls(cagr)}">${pct(cagr,1)}</b></div><div class="kpi"><span>Welt-ETF</span><b>${etf!=null?pct(etf/TM.budget-1,1):'–'}</b></div></div></div>
+    <div class="card" style="margin-top:12px"><h3>Was du daraus lernen kannst</h3>${ins.map(([ic,t])=>`<div class="insight"><span class="ic">${ic}</span><div>${t}</div></div>`).join('')}</div>
+    <div class="grid2" style="margin-top:12px"><button class="btn block" data-act="tmedit">Andere Auswahl testen</button><button class="btn primary block" data-act="tmnew">Neue Zeitreise</button></div>`;
+}
+
+// =========================================================
+//  WISSEN
+// =========================================================
+function renderLearn(){
+  const cards = [
+    ['🧺','Streuen statt zocken','Wer sein Geld auf viele Unternehmen, Branchen und Länder verteilt, ist nicht davon abhängig, dass eine einzelne Firma erfolgreich ist. Geht eine pleite, fällt das im Gesamtbild kaum ins Gewicht.'],
+    ['📦','ETF vs. Einzelaktie','Ein ETF ist ein Korb aus hunderten Aktien, der einen Index nachbildet – z. B. den MSCI World. Du kaufst mit einem Klick die ganze Welt. Einzelaktien können mehr bringen, aber auch komplett abstürzen.'],
+    ['🎢','Schwankung & Absturz','Fällt eine Aktie um 50 %, muss sie danach um 100 % steigen, nur um wieder bei null zu sein. Der „tiefste Punkt“ (Drawdown) zeigt, wie viel Nerven eine Anlage zwischendurch gekostet hätte.'],
+    ['⏳','Zeit schlägt Timing','Den perfekten Einstiegszeitpunkt trifft fast niemand. Historisch war entscheidender, lange investiert zu bleiben, als den richtigen Moment zu erwischen.'],
+    ['💸','Kosten zählen','In diesem Spiel gibt es keine Gebühren. In echt kosten Orders Geld, Fonds haben laufende Kosten (TER), und auf Gewinne fallen Steuern an (in Österreich 27,5 % KESt).'],
+    ['🔮','Rückschau ist einfach','Die Zeitmaschine zeigt, wie trügerisch der Blick zurück ist: Hinterher wirkt alles offensichtlich. Vergangene Renditen sind keine Garantie für die Zukunft.'],
+  ];
+  $('#view-lernen').innerHTML = `
+    <h1>Wissen</h1>
+    <p class="lead">Kurz erklärt: was du beim Spielen beobachten kannst.</p>
+    <div class="grid2 learn" style="margin-top:18px">${cards.map(([e,h,p])=>`<div class="card"><h3><span style="font-size:22px">${e}</span>${h}</h3><p>${p}</p></div>`).join('')}</div>
+    <div class="section-head"><h2>Datenquelle & Einstellungen</h2></div>
+    <div class="card">
+      <div class="small"><b>Status:</b> ${mode==='live'?'🟢 Live-Kurse von Yahoo Finance (teils ~15 Min. verzögert)':mode==='demo'?'🟡 Offline – simulierte Demo-Kurse':'Verbinde …'}</div>
+      <p class="tiny muted" style="margin-top:6px">Weil Browser direkte Abfragen bei Yahoo blockieren, laufen sie über einen öffentlichen Proxy. Falls das nicht klappt, kannst du hier einen eigenen Proxy eintragen (die Ziel-URL wird URL-kodiert angehängt).</p>
+      <div class="setting"><input id="proxyIn" placeholder="z. B. https://mein-proxy.workers.dev/?url=" value="${esc(store.get('pd_proxy',''))}"><button class="btn" data-act="saveproxy">Speichern & neu verbinden</button></div>
+    </div>
+    <div class="card"><h3>Zurücksetzen</h3>
+      <div class="grid2" style="margin-top:10px"><button class="btn" data-act="resetdepot">Live-Depot löschen</button><button class="btn" data-act="resetscen">Zeitreisen löschen</button></div></div>
+    <div class="banner" style="margin-top:14px"><span>ℹ️</span><div><b>Nur ein Spiel.</b> Papierdepot ist ein Lern- und Spaßprojekt mit Spielgeld. Nichts hier ist eine Anlageberatung oder Empfehlung, bestimmte Wertpapiere zu kaufen oder zu verkaufen.</div></div>`;
+}
+
+// =========================================================
+//  EVENTS
+// =========================================================
+document.addEventListener('click', async e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act;
+  if(b.tagName==='A') e.preventDefault();
+  switch(act){
+    case 'goto': closeSheet(); goto(b.dataset.view); break;
+    case 'cat': cat=b.dataset.cat; $('#q').value=''; renderMarket(); break;
+    case 'open': openSheet(b.dataset.s); break;
+    case 'close': closeSheet(); break;
+    case 'range': sheetRange=b.dataset.r; $$('.ranges button').forEach(x=>x.classList.toggle('on',x===b)); loadSheetChart(); break;
+    case 'side': tradeSide=b.dataset.side; renderTrade(); break;
+    case 'amt': {
+      const inp=$('#amt');
+      if(b.dataset.v==='max') inp.value=String(Math.floor(P.cash*100)/100).replace('.',',');
+      else if(b.dataset.v) inp.value=b.dataset.v;
+      else { const q=await quote(sheetSym), h=holdings()[sheetSym]; inp.value=String(Math.floor(h.sh*q.price*+b.dataset.f*100)/100).replace('.',','); if(+b.dataset.f===1) inp.dataset.all='1'; }
+      updateHint(); break; }
+    case 'dotrade': {
+      b.disabled=true; let v=parseNum($('#amt').value);
+      if(tradeSide==='sell' && $('#amt').dataset.all){ v=Infinity; }
+      try{ await trade(sheetSym,tradeSide,v); }catch(err){ toast('Kurs gerade nicht abrufbar'); }
+      b.disabled=false; break; }
+    case 'needdepot': closeSheet(); goto('depot'); break;
+    case 'pickcash': $$('#cashPick button').forEach(x=>x.classList.toggle('on',x===b)); $('#cashIn').value=b.dataset.v; break;
+    case 'opendepot': { const v=parseNum($('#cashIn').value); if(v<10) return toast('Mindestens 10 €'); if(v>10000000) return toast('Bleiben wir realistisch 😉'); openDepot(v); break; }
+    case 'resetdepot': if(confirm('Live-Depot wirklich löschen?')){ P=null; store.del('pd_live'); toast('Depot gelöscht'); goto('depot'); } break;
+    case 'resetscen': if(confirm('Alle gespeicherten Zeitreisen löschen?')){ store.del('pd_scenarios'); toast('Gelöscht'); } break;
+    case 'saveproxy': store.set('pd_proxy',$('#proxyIn').value.trim()); location.reload(); break;
+    case 'retry': location.reload(); break;
+    case 'tmyears': TM.years=+b.dataset.v; renderTM(); break;
+    case 'tmload': { const v=parseNum($('#tmBudget').value); if(v<10) return toast('Mindestens 10 €'); TM.budget=v; TM.alloc={}; TM.saved=false; loadTMData(); break; }
+    case 'tmback': TM.state='setup'; renderTM(); break;
+    case 'tmstep': { const s=b.dataset.s, cur=TM.alloc[s]||0, step=TM.budget>=5000?500:TM.budget>=2000?250:100; setAlloc(s, b.dataset.d==='1'?cur+step:Math.max(0,cur-step)); break; }
+    case 'tmgo': TM.sim=simulate(); TM.cursor=0; TM.saved=false; TM.state='reveal'; window.scrollTo({top:0}); renderTM(); setTimeout(play,350); break;
+    case 'tmplay': if(TM.playing){ TM.playing=false; b.textContent='▶ Weiter'; } else play(); break;
+    case 'tmjump': TM.playing=false; setCursor(+b.dataset.i); { const p=$('[data-act="tmplay"]'); if(p) p.textContent='▶ Abspielen'; } break;
+    case 'tmedit': TM.playing=false; TM.state='pick'; renderTM(); break;
+    case 'tmnew': TM.playing=false; TM.state='setup'; TM.alloc={}; renderTM(); break;
+  }
+});
+let qTimer; $('#q').addEventListener('input',()=>{ clearTimeout(qTimer); qTimer=setTimeout(renderMarket,200); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+
+// Automatische Aktualisierung (jede Minute, nur wenn sichtbar)
+setInterval(()=>{
+  if(document.hidden || mode==='pending') return;
+  if(sheetSym && sheetRange==='1T') loadSheetChart();
+  else if(view==='markt') marketList().forEach(a=>loadRow(a.s));
+  else if(view==='depot' && P && !sheetSym) renderDepot();
+  setStatus();
+},60000);
+
+// Start
+renderCats(); renderMarket(); probe();
+</script>
+</body>
+</html>
