@@ -363,6 +363,7 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');
 //  (Fallback: deterministische Demo-Kurse, klar gekennzeichnet)
 // =========================================================
 const PROXIES = [
+  {id:'worker', wrap:u=>'https://papierdepot-proxy.marian-haydn.workers.dev/?url='+encodeURIComponent(u)},
   {id:'corsproxy', wrap:u=>'https://corsproxy.io/?url='+encodeURIComponent(u)},
   {id:'allorigins', wrap:u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
   {id:'codetabs', wrap:u=>'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)},
@@ -370,7 +371,7 @@ const PROXIES = [
 function proxyList(){
   const custom = store.get('pd_proxy','');
   const good = store.get('pd_goodproxy','');
-  const list = [...PROXIES].sort((a,b)=>(b.id===good)-(a.id===good));
+  const list = [PROXIES[0], ...PROXIES.slice(1).sort((a,b)=>(b.id===good)-(a.id===good))];
   if(custom) list.unshift({id:'custom',wrap:u=>custom+encodeURIComponent(u)});
   return list;
 }
